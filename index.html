@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <title>NHL Smooth Dot Matrix Ticker</title>
 <style>
-body{
+body {
   margin:0;
   background:#000;
   font-family:monospace;
 }
 
-.broadcast-header{
+/* Header */
+.broadcast-header {
   background:linear-gradient(90deg,#003300,#001100);
   color:#00FF00;
   text-align:center;
@@ -20,7 +21,8 @@ body{
   font-weight:bold;
 }
 
-.ticker-wrapper{
+/* Ticker container */
+.ticker-wrapper {
   position:fixed;
   bottom:0;
   width:100%;
@@ -32,21 +34,22 @@ body{
   background:#000;
 }
 
-.ticker{
+/* Ticker content */
+.ticker {
   display:flex;
   width:max-content;
-  will-change:transform;  /* browser optimization */
+  will-change:transform;
   animation:scroll linear infinite;
 }
 
-@keyframes scroll{
-  0% {transform:translate3d(0,0,0);}
-  100% {transform:translate3d(-50%,0,0);}
+/* Scrolling animation */
+@keyframes scroll {
+  0% { transform: translate3d(0,0,0); }
+  100% { transform: translate3d(-50%,0,0); }
 }
 
-/* DOT MATRIX */
-
-.char{
+/* Dot matrix letters */
+.char {
   display:grid;
   grid-template-columns:repeat(5,6px);
   grid-template-rows:repeat(7,6px);
@@ -54,14 +57,14 @@ body{
   margin-right:6px;
 }
 
-.dot{
+.dot {
   width:6px;
   height:6px;
   background:#002200;
   border-radius:50%;
 }
 
-.dot.on{
+.dot.on {
   background:#00FF00;
 }
 </style>
@@ -75,7 +78,7 @@ body{
 </div>
 
 <script>
-const font5x7={
+const font5x7 = {
 "A":[14,17,31,17,17,17,0],"B":[30,17,30,17,17,30,0],"C":[14,17,16,16,17,14,0],
 "D":[28,18,17,17,18,28,0],"E":[31,16,30,16,16,31,0],"F":[31,16,30,16,16,16,0],
 "G":[14,17,16,23,17,14,0],"H":[17,17,31,17,17,17,0],"I":[14,4,4,4,4,14,0],
@@ -93,20 +96,21 @@ const font5x7={
 ".":[0,0,0,0,4,0,0],",":[0,0,0,4,4,8,0]
 };
 
+// Convert text to dot matrix elements
 function textToDots(text, link){
-  const wrapper=document.createElement("span");
-  wrapper.style.display="flex";
-  wrapper.style.cursor="pointer";
-  wrapper.onclick=()=>window.open(link,"_blank");
-  text=text.toUpperCase();
+  const wrapper = document.createElement("span");
+  wrapper.style.display = "flex";
+  wrapper.style.cursor = "pointer";
+  wrapper.onclick = () => window.open(link, "_blank");
+  text = text.toUpperCase();
   for(const char of text){
-    const grid=document.createElement("div");
-    grid.className="char";
-    const bitmap=font5x7[char]||font5x7[" "];
+    const grid = document.createElement("div");
+    grid.className = "char";
+    const bitmap = font5x7[char] || font5x7[" "];
     for(const row of bitmap){
-      for(let col=4;col>=0;col--){
-        const dot=document.createElement("div");
-        dot.className="dot";
+      for(let col=4; col>=0; col--){
+        const dot = document.createElement("div");
+        dot.className = "dot";
         if((row>>col)&1) dot.classList.add("on");
         grid.appendChild(dot);
       }
@@ -116,39 +120,49 @@ function textToDots(text, link){
   return wrapper;
 }
 
+// Fetch RSS feed and populate ticker
 async function fetchTicker(){
   try{
-    const rss="https://nhltradetalk.com/feed/";
-    const proxy="https://api.allorigins.win/get?url=";  // fixed proxy endpoint
-    const response=await fetch(proxy+encodeURIComponent(rss));
-    const data=await response.json();
-    const parser=new DOMParser();
-    const doc=parser.parseFromString(data.contents,"text/xml");
-    const items=[...doc.querySelectorAll("item")].slice(0,15);
-    const ticker=document.getElementById("tickerContent");
-    ticker.innerHTML="";
-    const fragment=document.createDocumentFragment();
-    items.forEach(item=>{
-      const title=item.querySelector("title").textContent;
-      const link=item.querySelector("link").textContent;
-      fragment.appendChild(textToDots(" ● "+title+" ●   ",link));
+    const rss = "https://www.sportsnet.ca/hockey/feed/";
+    const proxy = "https://api.allorigins.win/raw?url=";
+
+    const response = await fetch(proxy + encodeURIComponent(rss));
+    const xml = await response.text();
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, "text/xml");
+
+    const items = [...doc.querySelectorAll("item")].slice(0, 15);
+    const ticker = document.getElementById("tickerContent");
+    ticker.innerHTML = "";
+
+    const fragment = document.createDocumentFragment();
+
+    items.forEach(item => {
+      const title = item.querySelector("title").textContent;
+      const link = item.querySelector("link").textContent;
+      fragment.appendChild(textToDots(" ● " + title + " ●   ", link));
     });
+
+    // Duplicate fragment for smooth looping
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
 
-    // smooth dynamic scroll
-    const totalWidth=ticker.scrollWidth/2;
-    const speed=50;
-    const duration=totalWidth/speed;
-    ticker.style.animation=`scroll ${duration}s linear infinite`;
-  }catch(err){
+    // Dynamic scroll speed
+    const totalWidth = ticker.scrollWidth / 2;
+    const speed = 50; // pixels per second
+    const duration = totalWidth / speed;
+    ticker.style.animation = `scroll ${duration}s linear infinite`;
+
+  } catch(err) {
     console.error(err);
-    document.getElementById("tickerContent").innerHTML="ERROR LOADING RSS FEED";
+    document.getElementById("tickerContent").innerHTML = "ERROR LOADING RSS FEED";
   }
 }
 
+// Initial fetch and update every 60s
 fetchTicker();
-setInterval(fetchTicker,60000);
+setInterval(fetchTicker, 60000);
 </script>
 </body>
 </html>
