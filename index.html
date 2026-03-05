@@ -4,21 +4,26 @@
 <meta charset="UTF-8">
 <title>NHL Fast Dot Matrix Ticker</title>
 <style>
-body { margin:0; background:#000; font-family:monospace; }
+body { margin:0; background:#000; font-family:monospace; color:#0F0; }
 .broadcast-header { background:linear-gradient(90deg,#003300,#001100); color:#00FF00; text-align:center; padding:15px 0; font-size:28px; letter-spacing:2px; font-weight:bold; }
-.ticker-wrapper { position:fixed; bottom:0; width:100%; height:80px; overflow:hidden; display:flex; align-items:center; border-top:4px solid #00FF00; background:#000; }
+.ticker-wrapper { position:fixed; bottom:0; width:100%; height:120px; overflow:hidden; display:flex; align-items:center; border-top:4px solid #00FF00; background:#000; flex-direction:column; }
 .ticker { display:flex; width:max-content; will-change:transform; animation:scroll linear infinite; }
 @keyframes scroll { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-50%,0,0); } }
 .char { display:grid; grid-template-columns:repeat(5,6px); grid-template-rows:repeat(7,6px); gap:2px; margin-right:6px; }
 .dot { width:6px; height:6px; background:#002200; border-radius:50%; }
 .dot.on { background:#00FF00; }
-a { text-decoration:none; }
+a { text-decoration:none; display:flex; align-items:center; }
+.new-indicator { font-size:12px; color:#FF0; margin-right:4px; animation:blink 1s infinite; }
+@keyframes blink { 0%,50%,100% { opacity:1; } 25%,75% { opacity:0; } }
+.debug-info { font-size:12px; color:#0F0; text-align:center; margin-bottom:2px; }
 </style>
 </head>
 <body>
 
 <div class="broadcast-header">🏒 NHL NETWORK LIVE NEWS</div>
+
 <div class="ticker-wrapper">
+  <div class="debug-info" id="debugInfo">Loading headlines...</div>
   <div class="ticker" id="tickerContent"></div>
 </div>
 
@@ -39,12 +44,20 @@ const font5x7 = {
 '?':[14,17,2,4,0,4,0], '&':[12,18,12,20,18,12,0], '(': [2,4,4,4,4,2,0], ')':[8,4,4,4,4,8,0]
 };
 
+let previousHeadlines = new Set();
+
 // Returns an <a> element containing the dot matrix of the text
-function textToDotsLink(text, link){
+function textToDotsLink(text, link, isNew=false){
   const a = document.createElement("a");
   a.href = link || "#";
   a.target = "_blank";
-  a.style.display = "flex";
+
+  if(isNew){
+    const indicator = document.createElement("span");
+    indicator.className = "new-indicator";
+    indicator.textContent = "NEW";
+    a.appendChild(indicator);
+  }
 
   text = text.toUpperCase();
   for(const char of text){
@@ -66,6 +79,8 @@ function textToDotsLink(text, link){
 
 async function fetchTicker(){
   try{
+    console.log(`[DEBUG] Fetching ticker at ${new Date().toLocaleTimeString()}`);
+    
     const rss="https://www.sportsnet.ca/hockey/feed/";
     const proxy="https://api.codetabs.com/v1/proxy?quest=";
     const response = await fetch(proxy + encodeURIComponent(rss));
@@ -78,14 +93,20 @@ async function fetchTicker(){
     ticker.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
+    const newHeadlines = new Set();
 
-    items.forEach(item=>{
-      const headline = item.querySelector("headline")?.textContent.trim();
+    items.forEach((item,index)=>{
+      const headline = item.querySelector("headline")?.textContent.trim() || item.querySelector("title")?.textContent.trim();
       const link = item.querySelector("link")?.textContent.trim();
       if(headline){
-        fragment.appendChild(textToDotsLink(" ● "+headline+" ", link));
+        const isNew = !previousHeadlines.has(headline);
+        newHeadlines.add(headline);
+        console.log(`[DEBUG] Headline ${index+1}: "${headline}" | Link: ${link} | NEW: ${isNew}`);
+        fragment.appendChild(textToDotsLink(" ● "+headline+" ", link, isNew));
       }
     });
+
+    previousHeadlines = newHeadlines;
 
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
@@ -94,14 +115,22 @@ async function fetchTicker(){
     const speed = 300;
     const duration = totalWidth / speed;
     ticker.style.animation = `scroll ${duration}s linear infinite`;
+
+    // Update debug info on page
+    const debugEl = document.getElementById("debugInfo");
+    debugEl.textContent = `Last updated: ${new Date().toLocaleTimeString()} | Headlines loaded: ${items.length}`;
+
   }catch(err){
-    console.error(err);
+    console.error(`[ERROR] Failed to fetch ticker:`, err);
     document.getElementById("tickerContent").innerHTML="ERROR LOADING RSS FEED";
+    document.getElementById("debugInfo").textContent="ERROR LOADING RSS FEED";
   }
 }
 
+// Initial fetch and repeat every minute
 fetchTicker();
 setInterval(fetchTicker,60000);
 </script>
+
 </body>
 </html>
