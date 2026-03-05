@@ -4,70 +4,19 @@
 <meta charset="UTF-8">
 <title>NHL Fast Dot Matrix Ticker</title>
 <style>
-body {
-  margin:0;
-  background:#000;
-  font-family:monospace;
-}
-
-.broadcast-header {
-  background:linear-gradient(90deg,#003300,#001100);
-  color:#00FF00;
-  text-align:center;
-  padding:15px 0;
-  font-size:28px;
-  letter-spacing:2px;
-  font-weight:bold;
-}
-
-.ticker-wrapper {
-  position:fixed;
-  bottom:0;
-  width:100%;
-  height:80px;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  border-top:4px solid #00FF00;
-  background:#000;
-}
-
-.ticker {
-  display:flex;
-  width:max-content;
-  will-change:transform;
-  animation:scroll linear infinite;
-}
-
-@keyframes scroll {
-  0% { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(-50%,0,0); }
-}
-
-.char {
-  display:grid;
-  grid-template-columns:repeat(5,6px);
-  grid-template-rows:repeat(7,6px);
-  gap:2px;
-  margin-right:6px;
-}
-
-.dot {
-  width:6px;
-  height:6px;
-  background:#002200;
-  border-radius:50%;
-}
-
-.dot.on {
-  background:#00FF00;
-}
+body { margin:0; background:#000; font-family:monospace; }
+.broadcast-header { background:linear-gradient(90deg,#003300,#001100); color:#00FF00; text-align:center; padding:15px 0; font-size:28px; letter-spacing:2px; font-weight:bold; }
+.ticker-wrapper { position:fixed; bottom:0; width:100%; height:80px; overflow:hidden; display:flex; align-items:center; border-top:4px solid #00FF00; background:#000; }
+.ticker { display:flex; width:max-content; will-change:transform; animation:scroll linear infinite; }
+@keyframes scroll { 0% { transform: translate3d(0,0,0); } 100% { transform: translate3d(-50%,0,0); } }
+.char { display:grid; grid-template-columns:repeat(5,6px); grid-template-rows:repeat(7,6px); gap:2px; margin-right:6px; }
+.dot { width:6px; height:6px; background:#002200; border-radius:50%; }
+.dot.on { background:#00FF00; }
 </style>
 </head>
 <body>
 
 <div class="broadcast-header">🏒 NHL NETWORK LIVE NEWS</div>
-
 <div class="ticker-wrapper">
   <div class="ticker" id="tickerContent"></div>
 </div>
@@ -76,26 +25,22 @@ body {
 const font5x7 = {
 "A":[14,17,31,17,17,17,0],"B":[30,17,30,17,17,30,0],"C":[14,17,16,16,17,14,0],
 "D":[28,18,17,17,18,28,0],"E":[31,16,30,16,16,31,0],"F":[31,16,30,16,16,16,0],
-"G":[14,17,16,23,17,14,0],"H":[17,17,31,17,17,17,0],"I":[14,4,4,4,4,14,0],
-"J":[7,2,2,2,18,12,0],"K":[17,18,28,18,17,17,0],"L":[16,16,16,16,16,31,0],
-"M":[17,27,21,17,17,17,0],"N":[17,25,21,19,17,17,0],"O":[14,17,17,17,17,14,0],
-"P":[30,17,30,16,16,16,0],"Q":[14,17,17,21,18,13,0],"R":[30,17,30,18,17,17,0],
-"S":[15,16,14,1,1,30,0],"T":[31,4,4,4,4,4,0],"U":[17,17,17,17,17,14,0],
-"V":[17,17,17,17,10,4,0],"W":[17,17,17,21,27,17,0],"X":[17,10,4,4,10,17,0],
-"Y":[17,10,4,4,4,4,0],"Z":[31,2,4,8,16,31,0],
-"0":[14,19,21,25,17,14,0],"1":[4,12,4,4,4,14,0],"2":[14,17,2,4,8,31,0],
-"3":[31,2,4,2,17,14,0],"4":[2,6,10,18,31,2,0],"5":[31,16,30,1,17,14,0],
-"6":[6,8,16,30,17,14,0],"7":[31,1,2,4,8,8,0],"8":[14,17,14,17,17,14,0],
-"9":[14,17,17,15,1,14,0]," ":[0,0,0,0,0,0,0],
-".":[0,0,0,0,4,0,0],",":[0,0,0,4,4,8,0]
+"G":[14,17,16,23,17,14,0],"H":[17,17,31,17,17,17,0],"I":[14,4,4,4,4,14,0],"J":[7,2,2,2,18,12,0],
+"K":[17,18,28,18,17,17,0],"L":[16,16,16,16,16,31,0],"M":[17,27,21,17,17,17,0],"N":[17,25,21,19,17,17,0],
+"O":[14,17,17,17,17,14,0],"P":[30,17,30,16,16,16,0],"Q":[14,17,17,21,18,13,0],"R":[30,17,30,18,17,17,0],
+"S":[15,16,14,1,1,30,0],"T":[31,4,4,4,4,4,0],"U":[17,17,17,17,17,14,0],"V":[17,17,17,17,10,4,0],
+"W":[17,17,17,21,27,17,0],"X":[17,10,4,4,10,17,0],"Y":[17,10,4,4,4,4,0],"Z":[31,2,4,8,16,31,0],
+"0":[14,19,21,25,17,14,0],"1":[4,12,4,4,4,14,0],"2":[14,17,2,4,8,31,0],"3":[31,2,4,2,17,14,0],
+"4":[2,6,10,18,31,2,0],"5":[31,16,30,1,17,14,0],"6":[6,8,16,30,17,14,0],"7":[31,1,2,4,8,8,0],
+"8":[14,17,14,17,17,14,0],"9":[14,17,17,15,1,14,0]," ":[0,0,0,0,0,0,0],".":[0,0,0,0,4,0,0],",":[0,0,0,4,4,8,0],
+"●":[0,4,14,14,4,0,0]
 };
 
-// Convert text to dot matrix
 function textToDots(text, link){
   const wrapper = document.createElement("span");
-  wrapper.style.display = "flex";
-  wrapper.style.cursor = "pointer";
-  wrapper.onclick = () => window.open(link, "_blank");
+  wrapper.style.display="flex";
+  wrapper.style.cursor="pointer";
+  wrapper.onclick = () => window.open(link,"_blank");
   text = text.toUpperCase();
   for(const char of text){
     const grid = document.createElement("div");
@@ -114,48 +59,44 @@ function textToDots(text, link){
   return wrapper;
 }
 
-// Fetch and display only <item> titles
 async function fetchTicker(){
   try{
-    const rss = "https://www.sportsnet.ca/hockey/feed/";
-    const proxy = "https://api.codetabs.com/v1/proxy?quest=";
-
+    const rss="https://www.sportsnet.ca/hockey/feed/";
+    const proxy="https://api.codetabs.com/v1/proxy?quest=";
     const response = await fetch(proxy + encodeURIComponent(rss));
     const xml = await response.text();
-
     const parser = new DOMParser();
-    const doc = parser.parseFromString(xml, "text/xml");
+    const doc = parser.parseFromString(xml,"text/xml");
 
-    // Only select <item> titles, ignore <channel> title
-    const items = [...doc.querySelectorAll("item")].slice(0, 15);
+    const items = [...doc.querySelectorAll("item")].slice(0,15);
     const ticker = document.getElementById("tickerContent");
     ticker.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
 
-    items.forEach(item => {
-      const title = item.querySelector("title").textContent.trim();
-      const link = item.querySelector("link").textContent.trim();
-      fragment.appendChild(textToDots(title + " ", link)); // space between titles
+    items.forEach(item=>{
+      const headline = item.querySelector("headline")?.textContent.trim();
+      const link = item.querySelector("link")?.textContent.trim();
+      if(headline){
+        fragment.appendChild(textToDots(" ● "+headline+" ", link)); // bullet separator
+      }
     });
 
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
 
-    // Faster scrolling
     const totalWidth = ticker.scrollWidth / 2;
-    const speed = 300; // pixels per second (even faster)
+    const speed = 300;
     const duration = totalWidth / speed;
     ticker.style.animation = `scroll ${duration}s linear infinite`;
-
-  } catch(err) {
+  }catch(err){
     console.error(err);
-    document.getElementById("tickerContent").innerHTML = "ERROR LOADING RSS FEED";
+    document.getElementById("tickerContent").innerHTML="ERROR LOADING RSS FEED";
   }
 }
 
 fetchTicker();
-setInterval(fetchTicker, 60000);
+setInterval(fetchTicker,60000);
 </script>
 </body>
 </html>
