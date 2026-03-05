@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NHL Smooth Dot Matrix Ticker</title>
+<title>NHL Fast Dot Matrix Ticker</title>
 <style>
 body {
   margin:0;
@@ -10,7 +10,6 @@ body {
   font-family:monospace;
 }
 
-/* Header */
 .broadcast-header {
   background:linear-gradient(90deg,#003300,#001100);
   color:#00FF00;
@@ -21,7 +20,6 @@ body {
   font-weight:bold;
 }
 
-/* Ticker container */
 .ticker-wrapper {
   position:fixed;
   bottom:0;
@@ -34,7 +32,6 @@ body {
   background:#000;
 }
 
-/* Ticker content */
 .ticker {
   display:flex;
   width:max-content;
@@ -42,13 +39,11 @@ body {
   animation:scroll linear infinite;
 }
 
-/* Scrolling animation */
 @keyframes scroll {
   0% { transform: translate3d(0,0,0); }
   100% { transform: translate3d(-50%,0,0); }
 }
 
-/* Dot matrix letters */
 .char {
   display:grid;
   grid-template-columns:repeat(5,6px);
@@ -92,11 +87,10 @@ const font5x7 = {
 "3":[31,2,4,2,17,14,0],"4":[2,6,10,18,31,2,0],"5":[31,16,30,1,17,14,0],
 "6":[6,8,16,30,17,14,0],"7":[31,1,2,4,8,8,0],"8":[14,17,14,17,17,14,0],
 "9":[14,17,17,15,1,14,0]," ":[0,0,0,0,0,0,0],
-"●":[0,4,14,14,4,0,0],"-":[0,0,14,0,0,0,0],":":[0,4,0,0,4,0,0],
 ".":[0,0,0,0,4,0,0],",":[0,0,0,4,4,8,0]
 };
 
-// Convert text to dot matrix elements
+// Convert text to dot matrix
 function textToDots(text, link){
   const wrapper = document.createElement("span");
   wrapper.style.display = "flex";
@@ -120,7 +114,7 @@ function textToDots(text, link){
   return wrapper;
 }
 
-// Fetch RSS feed and populate ticker
+// Fetch and display only article titles
 async function fetchTicker(){
   try{
     const rss = "https://www.sportsnet.ca/hockey/feed/";
@@ -138,18 +132,19 @@ async function fetchTicker(){
 
     const fragment = document.createDocumentFragment();
 
+    // Only titles, no bullets
     items.forEach(item => {
       const title = item.querySelector("title").textContent;
       const link = item.querySelector("link").textContent;
-      fragment.appendChild(textToDots(" ● " + title + " ●   ", link));
+      fragment.appendChild(textToDots(title + " ", link)); // space between titles
     });
 
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
 
-    // Faster scroll
+    // Faster scrolling
     const totalWidth = ticker.scrollWidth / 2;
-    const speed = 150; // pixels per second (3x faster than before)
+    const speed = 250; // pixels per second, much faster
     const duration = totalWidth / speed;
     ticker.style.animation = `scroll ${duration}s linear infinite`;
 
@@ -159,7 +154,6 @@ async function fetchTicker(){
   }
 }
 
-// Initial fetch and refresh every 60 seconds
 fetchTicker();
 setInterval(fetchTicker, 60000);
 </script>
