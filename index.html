@@ -76,48 +76,21 @@ body{
 
 <script>
 const font5x7={
-"A":[14,17,31,17,17,17,0],
-"B":[30,17,30,17,17,30,0],
-"C":[14,17,16,16,17,14,0],
-"D":[28,18,17,17,18,28,0],
-"E":[31,16,30,16,16,31,0],
-"F":[31,16,30,16,16,16,0],
-"G":[14,17,16,23,17,14,0],
-"H":[17,17,31,17,17,17,0],
-"I":[14,4,4,4,4,14,0],
-"J":[7,2,2,2,18,12,0],
-"K":[17,18,28,18,17,17,0],
-"L":[16,16,16,16,16,31,0],
-"M":[17,27,21,17,17,17,0],
-"N":[17,25,21,19,17,17,0],
-"O":[14,17,17,17,17,14,0],
-"P":[30,17,30,16,16,16,0],
-"Q":[14,17,17,21,18,13,0],
-"R":[30,17,30,18,17,17,0],
-"S":[15,16,14,1,1,30,0],
-"T":[31,4,4,4,4,4,0],
-"U":[17,17,17,17,17,14,0],
-"V":[17,17,17,17,10,4,0],
-"W":[17,17,17,21,27,17,0],
-"X":[17,10,4,4,10,17,0],
-"Y":[17,10,4,4,4,4,0],
-"Z":[31,2,4,8,16,31,0],
-"0":[14,19,21,25,17,14,0],
-"1":[4,12,4,4,4,14,0],
-"2":[14,17,2,4,8,31,0],
-"3":[31,2,4,2,17,14,0],
-"4":[2,6,10,18,31,2,0],
-"5":[31,16,30,1,17,14,0],
-"6":[6,8,16,30,17,14,0],
-"7":[31,1,2,4,8,8,0],
-"8":[14,17,14,17,17,14,0],
-"9":[14,17,17,15,1,14,0],
-" ":[0,0,0,0,0,0,0],
-"●":[0,4,14,14,4,0,0],
-"-":[0,0,14,0,0,0,0],
-":":[0,4,0,0,4,0,0],
-".":[0,0,0,0,4,0,0],
-",":[0,0,0,4,4,8,0]
+"A":[14,17,31,17,17,17,0],"B":[30,17,30,17,17,30,0],"C":[14,17,16,16,17,14,0],
+"D":[28,18,17,17,18,28,0],"E":[31,16,30,16,16,31,0],"F":[31,16,30,16,16,16,0],
+"G":[14,17,16,23,17,14,0],"H":[17,17,31,17,17,17,0],"I":[14,4,4,4,4,14,0],
+"J":[7,2,2,2,18,12,0],"K":[17,18,28,18,17,17,0],"L":[16,16,16,16,16,31,0],
+"M":[17,27,21,17,17,17,0],"N":[17,25,21,19,17,17,0],"O":[14,17,17,17,17,14,0],
+"P":[30,17,30,16,16,16,0],"Q":[14,17,17,21,18,13,0],"R":[30,17,30,18,17,17,0],
+"S":[15,16,14,1,1,30,0],"T":[31,4,4,4,4,4,0],"U":[17,17,17,17,17,14,0],
+"V":[17,17,17,17,10,4,0],"W":[17,17,17,21,27,17,0],"X":[17,10,4,4,10,17,0],
+"Y":[17,10,4,4,4,4,0],"Z":[31,2,4,8,16,31,0],
+"0":[14,19,21,25,17,14,0],"1":[4,12,4,4,4,14,0],"2":[14,17,2,4,8,31,0],
+"3":[31,2,4,2,17,14,0],"4":[2,6,10,18,31,2,0],"5":[31,16,30,1,17,14,0],
+"6":[6,8,16,30,17,14,0],"7":[31,1,2,4,8,8,0],"8":[14,17,14,17,17,14,0],
+"9":[14,17,17,15,1,14,0]," ":[0,0,0,0,0,0,0],
+"●":[0,4,14,14,4,0,0],"-":[0,0,14,0,0,0,0],":":[0,4,0,0,4,0,0],
+".":[0,0,0,0,4,0,0],",":[0,0,0,4,4,8,0]
 };
 
 function textToDots(text, link){
@@ -146,11 +119,11 @@ function textToDots(text, link){
 async function fetchTicker(){
   try{
     const rss="https://nhltradetalk.com/feed/";
-    const proxy="https://api.allorigins.win/raw?url=";
-    const response=await fetch(proxy+encodeURIComponent(rss)+"&t="+Date.now());
-    const xml=await response.text();
+    const proxy="https://api.allorigins.win/get?url=";  // fixed proxy endpoint
+    const response=await fetch(proxy+encodeURIComponent(rss));
+    const data=await response.json();
     const parser=new DOMParser();
-    const doc=parser.parseFromString(xml,"text/xml");
+    const doc=parser.parseFromString(data.contents,"text/xml");
     const items=[...doc.querySelectorAll("item")].slice(0,15);
     const ticker=document.getElementById("tickerContent");
     ticker.innerHTML="";
@@ -160,14 +133,13 @@ async function fetchTicker(){
       const link=item.querySelector("link").textContent;
       fragment.appendChild(textToDots(" ● "+title+" ●   ",link));
     });
-    // duplicate for smooth continuous scroll
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
 
-    // dynamically adjust animation duration based on content width
-    const totalWidth=ticker.scrollWidth / 2; // width of one set
-    const speed=50; // pixels per second
-    const duration=totalWidth/speed; 
+    // smooth dynamic scroll
+    const totalWidth=ticker.scrollWidth/2;
+    const speed=50;
+    const duration=totalWidth/speed;
     ticker.style.animation=`scroll ${duration}s linear infinite`;
   }catch(err){
     console.error(err);
