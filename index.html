@@ -40,7 +40,10 @@ function textToDots(text, link){
   const wrapper = document.createElement("span");
   wrapper.style.display="flex";
   wrapper.style.cursor="pointer";
-  wrapper.onclick = () => window.open(link,"_blank");
+
+  // Click opens the link in a new tab
+  wrapper.onclick = () => { if(link) window.open(link, "_blank"); };
+
   text = text.toUpperCase();
   for(const char of text){
     const grid = document.createElement("div");
@@ -78,7 +81,7 @@ async function fetchTicker(){
       const headline = item.querySelector("headline")?.textContent.trim();
       const link = item.querySelector("link")?.textContent.trim();
       if(headline){
-        fragment.appendChild(textToDots(" ● "+headline+" ", link)); // bullet separator
+        fragment.appendChild(textToDots(" ● "+headline+" ", link)); // bullet + headline clickable
       }
     });
 
