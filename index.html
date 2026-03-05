@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>NHL News LED Ticker</title>
+
+<meta http-equiv="refresh" content="900">
+
+<!-- Dot-matrix font -->
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    background: #000;
+    font-family: 'VT323', monospace;
+}
+
+/* Top broadcast banner */
+.broadcast-header {
+    background: linear-gradient(90deg, #c8102e, #8b0000);
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    letter-spacing: 3px;
+    font-weight: 700;
+}
+
+/* Ticker bar */
+.ticker-wrapper {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 70px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    border-top: 4px solid #c8102e;
+    box-shadow: 0 -5px 20px rgba(200,16,46,0.6);
+    background-color: #111;
+    
+    /* Dot-matrix background */
+    background-image: radial-gradient(circle, #222 1px, transparent 1px);
+    background-size: 10px 10px; /* spacing of dots */
+}
+
+/* Ticker text */
+.ticker {
+    white-space: nowrap;
+    display: inline-block;
+    padding-left: 100%;
+    font-size: 24px;
+    color: #00FF00; /* LED green */
+    text-shadow:
+        0 0 5px #00FF00,
+        0 0 10px #00FF00,
+        0 0 15px #00FF00,
+        0 0 20px #00FF00,
+        0 0 30px #00FF00;
+    animation: scroll 40s linear infinite, flicker 0.2s infinite;
+}
+
+.ticker:hover {
+    animation-play-state: paused;
+}
+
+.ticker a {
+    color: #00FF00;
+    text-decoration: none;
+    margin-right: 60px;
+}
+
+.ticker a:hover {
+    color: #ffffff;
+}
+
+/* Scroll animation */
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Flicker animation */
+@keyframes flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+    }
+    20%, 22%, 24%, 55% {
+        opacity: 0.7;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="broadcast-header">🏒 NHL NETWORK LIVE NEWS</div>
+
+<div class="ticker-wrapper">
+    <div class="ticker" id="tickerContent">
+        Loading latest NHL headlines...
+    </div>
+</div>
+
+<script>
+async function fetchNews() {
+    try {
+        const feedUrl = encodeURIComponent("https://nhltradetalk.com/feed");
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        let tickerText = "";
+        data.items.forEach(item => {
+            tickerText += `<a href="${item.link}" target="_blank">● ${item.title}</a>`;
+        });
+
+        if(tickerText === "") tickerText = "No recent headlines.";
+
+        document.getElementById("tickerContent").innerHTML = tickerText;
+
+    } catch (e) {
+        document.getElementById("tickerContent").innerHTML = "Error fetching feed.";
+        console.error(e);
+    }
+}
+
+fetchNews();
+</script>
+
+</body>
+</html>
