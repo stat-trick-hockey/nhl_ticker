@@ -124,7 +124,7 @@ function textToDots(text, link){
 async function fetchTicker(){
   try{
     const rss = "https://www.sportsnet.ca/hockey/feed/";
-    const proxy = "https://api.codetabs.com/v1/proxy?quest=";  // reliable CORS proxy
+    const proxy = "https://api.codetabs.com/v1/proxy?quest=";
 
     const response = await fetch(proxy + encodeURIComponent(rss));
     const xml = await response.text();
@@ -144,13 +144,12 @@ async function fetchTicker(){
       fragment.appendChild(textToDots(" ● " + title + " ●   ", link));
     });
 
-    // Duplicate for smooth infinite scroll
     ticker.appendChild(fragment.cloneNode(true));
     ticker.appendChild(fragment);
 
-    // Dynamic scroll speed
+    // Faster scroll
     const totalWidth = ticker.scrollWidth / 2;
-    const speed = 50; // pixels per second
+    const speed = 150; // pixels per second (3x faster than before)
     const duration = totalWidth / speed;
     ticker.style.animation = `scroll ${duration}s linear infinite`;
 
