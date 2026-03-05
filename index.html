@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>NHL True Dot-Matrix Ticker</title>
+<title>NHL Dot Matrix Ticker</title>
 
 <style>
 
@@ -11,8 +11,6 @@ margin:0;
 background:#000;
 font-family:monospace;
 }
-
-/* Broadcast header */
 
 .broadcast-header{
 background:linear-gradient(90deg,#003300,#001100);
@@ -23,8 +21,6 @@ font-size:28px;
 letter-spacing:2px;
 font-weight:bold;
 }
-
-/* ticker wrapper */
 
 .ticker-wrapper{
 position:fixed;
@@ -38,22 +34,16 @@ border-top:4px solid #00FF00;
 background:#000;
 }
 
-/* ticker */
-
 .ticker{
 display:flex;
 width:max-content;
-animation:scroll 60s linear infinite;
+animation:scroll 70s linear infinite;
 }
-
-/* perfect loop */
 
 @keyframes scroll{
 0%{transform:translateX(0);}
 100%{transform:translateX(-50%);}
 }
-
-/* character grid */
 
 .char{
 display:grid;
@@ -63,12 +53,10 @@ gap:2px;
 margin-right:6px;
 }
 
-/* dots */
-
 .dot{
 width:6px;
 height:6px;
-background:#003300;
+background:#002200;
 border-radius:50%;
 }
 
@@ -84,85 +72,75 @@ background:#00FF00;
 <div class="broadcast-header">🏒 NHL NETWORK LIVE NEWS</div>
 
 <div class="ticker-wrapper">
-<div class="ticker" id="tickerContent">
-Loading NHL headlines...
-</div>
+<div class="ticker" id="tickerContent"></div>
 </div>
 
 <script>
 
-/* 5x7 DOT MATRIX FONT */
+/* DOT FONT */
 
 const font5x7={
+"A":[14,17,31,17,17,17,0],
+"B":[30,17,30,17,17,30,0],
+"C":[14,17,16,16,17,14,0],
+"D":[28,18,17,17,18,28,0],
+"E":[31,16,30,16,16,31,0],
+"F":[31,16,30,16,16,16,0],
+"G":[14,17,16,23,17,14,0],
+"H":[17,17,31,17,17,17,0],
+"I":[14,4,4,4,4,14,0],
+"J":[7,2,2,2,18,12,0],
+"K":[17,18,28,18,17,17,0],
+"L":[16,16,16,16,16,31,0],
+"M":[17,27,21,17,17,17,0],
+"N":[17,25,21,19,17,17,0],
+"O":[14,17,17,17,17,14,0],
+"P":[30,17,30,16,16,16,0],
+"Q":[14,17,17,21,18,13,0],
+"R":[30,17,30,18,17,17,0],
+"S":[15,16,14,1,1,30,0],
+"T":[31,4,4,4,4,4,0],
+"U":[17,17,17,17,17,14,0],
+"V":[17,17,17,17,10,4,0],
+"W":[17,17,17,21,27,17,0],
+"X":[17,10,4,4,10,17,0],
+"Y":[17,10,4,4,4,4,0],
+"Z":[31,2,4,8,16,31,0],
 
-"A":[0b01110,0b10001,0b11111,0b10001,0b10001,0b10001,0b00000],
-"B":[0b11110,0b10001,0b11110,0b10001,0b10001,0b11110,0b00000],
-"C":[0b01110,0b10001,0b10000,0b10000,0b10001,0b01110,0b00000],
-"D":[0b11100,0b10010,0b10001,0b10001,0b10010,0b11100,0b00000],
-"E":[0b11111,0b10000,0b11110,0b10000,0b10000,0b11111,0b00000],
-"F":[0b11111,0b10000,0b11110,0b10000,0b10000,0b10000,0b00000],
-"G":[0b01110,0b10001,0b10000,0b10111,0b10001,0b01110,0b00000],
-"H":[0b10001,0b10001,0b11111,0b10001,0b10001,0b10001,0b00000],
-"I":[0b01110,0b00100,0b00100,0b00100,0b00100,0b01110,0b00000],
-"J":[0b00111,0b00010,0b00010,0b00010,0b10010,0b01100,0b00000],
-"K":[0b10001,0b10010,0b11100,0b10010,0b10001,0b10001,0b00000],
-"L":[0b10000,0b10000,0b10000,0b10000,0b10000,0b11111,0b00000],
-"M":[0b10001,0b11011,0b10101,0b10001,0b10001,0b10001,0b00000],
-"N":[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b00000],
-"O":[0b01110,0b10001,0b10001,0b10001,0b10001,0b01110,0b00000],
-"P":[0b11110,0b10001,0b11110,0b10000,0b10000,0b10000,0b00000],
-"Q":[0b01110,0b10001,0b10001,0b10101,0b10010,0b01101,0b00000],
-"R":[0b11110,0b10001,0b11110,0b10010,0b10001,0b10001,0b00000],
-"S":[0b01111,0b10000,0b01110,0b00001,0b00001,0b11110,0b00000],
-"T":[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b00000],
-"U":[0b10001,0b10001,0b10001,0b10001,0b10001,0b01110,0b00000],
-"V":[0b10001,0b10001,0b10001,0b10001,0b01010,0b00100,0b00000],
-"W":[0b10001,0b10001,0b10001,0b10101,0b11011,0b10001,0b00000],
-"X":[0b10001,0b01010,0b00100,0b00100,0b01010,0b10001,0b00000],
-"Y":[0b10001,0b01010,0b00100,0b00100,0b00100,0b00100,0b00000],
-"Z":[0b11111,0b00010,0b00100,0b01000,0b10000,0b11111,0b00000],
-
-"0":[0b01110,0b10011,0b10101,0b11001,0b10001,0b01110,0b00000],
-"1":[0b00100,0b01100,0b00100,0b00100,0b00100,0b01110,0b00000],
-"2":[0b01110,0b10001,0b00010,0b00100,0b01000,0b11111,0b00000],
-"3":[0b11111,0b00010,0b00100,0b00010,0b10001,0b01110,0b00000],
-"4":[0b00010,0b00110,0b01010,0b10010,0b11111,0b00010,0b00000],
-"5":[0b11111,0b10000,0b11110,0b00001,0b10001,0b01110,0b00000],
-"6":[0b00110,0b01000,0b10000,0b11110,0b10001,0b01110,0b00000],
-"7":[0b11111,0b00001,0b00010,0b00100,0b01000,0b01000,0b00000],
-"8":[0b01110,0b10001,0b01110,0b10001,0b10001,0b01110,0b00000],
-"9":[0b01110,0b10001,0b10001,0b01111,0b00001,0b01110,0b00000],
+"0":[14,19,21,25,17,14,0],
+"1":[4,12,4,4,4,14,0],
+"2":[14,17,2,4,8,31,0],
+"3":[31,2,4,2,17,14,0],
+"4":[2,6,10,18,31,2,0],
+"5":[31,16,30,1,17,14,0],
+"6":[6,8,16,30,17,14,0],
+"7":[31,1,2,4,8,8,0],
+"8":[14,17,14,17,17,14,0],
+"9":[14,17,17,15,1,14,0],
 
 " ":[0,0,0,0,0,0,0],
 "●":[0,4,14,14,4,0,0],
 "-":[0,0,14,0,0,0,0],
 ":":[0,4,0,0,4,0,0],
 ".":[0,0,0,0,4,0,0],
-",":[0,0,0,4,4,8,0],
-"!":[4,4,4,4,0,4,0],
-"?":[14,17,2,4,0,4,0],
-"'":[4,4,0,0,0,0,0]
-
+",":[0,0,0,4,4,8,0]
 };
 
-/* convert text to dot characters */
+/* TEXT TO DOTS */
 
 function textToDots(text,link){
 
-const container=document.createDocumentFragment();
+const wrapper=document.createElement("span");
+wrapper.style.display="flex";
+wrapper.style.cursor="pointer";
+wrapper.onclick=()=>window.open(link,"_blank");
 
 text=text.toUpperCase();
 
-const span=document.createElement("span");
-span.style.display="flex";
-span.style.cursor="pointer";
-
-span.onclick=()=>window.open(link,"_blank");
-
 for(let char of text){
 
-const charGrid=document.createElement("div");
-charGrid.className="char";
+const grid=document.createElement("div");
+grid.className="char";
 
 const bitmap=font5x7[char]||font5x7[" "];
 
@@ -175,71 +153,74 @@ dot.className="dot";
 
 if((row>>col)&1)dot.classList.add("on");
 
-charGrid.appendChild(dot);
+grid.appendChild(dot);
 
 }
 
 }
 
-span.appendChild(charGrid);
+wrapper.appendChild(grid);
 
 }
 
-container.appendChild(span);
-
-return container;
+return wrapper;
 
 }
 
-/* fetch RSS feed */
+/* FETCH RSS */
 
 async function fetchTicker(){
 
 try{
 
-const feedUrl=encodeURIComponent("https://nhltradetalk.com/feed");
+const url="https://api.allorigins.win/raw?url="+encodeURIComponent("https://nhltradetalk.com/feed/");
 
-/* cache buster */
+const response=await fetch(url+"?t="+Date.now());
+const xml=await response.text();
 
-const apiUrl=`https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}&_=${Date.now()}`;
+const parser=new DOMParser();
+const doc=parser.parseFromString(xml,"text/xml");
 
-const response=await fetch(apiUrl);
-const data=await response.json();
+const items=[...doc.querySelectorAll("item")];
 
-const tickerDiv=document.getElementById("tickerContent");
+const ticker=document.getElementById("tickerContent");
 
-tickerDiv.innerHTML="";
+ticker.innerHTML="";
 
-/* restart animation */
+/* newest first */
 
-tickerDiv.style.animation="none";
-tickerDiv.offsetHeight;
-tickerDiv.style.animation=null;
+items.sort((a,b)=>{
 
-/* sort newest first */
+return new Date(b.querySelector("pubDate").textContent)-
+new Date(a.querySelector("pubDate").textContent)
 
-const sorted=data.items.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+});
 
-console.log("Newest headline:",sorted[0].title);
-
-/* newest 15 */
-
-const headlines=sorted.slice(0,15);
+const latest=items.slice(0,15);
 
 const fragment=document.createDocumentFragment();
 
-headlines.forEach(item=>{
+latest.forEach(item=>{
+
+const title=item.querySelector("title").textContent;
+const link=item.querySelector("link").textContent;
 
 fragment.appendChild(
-textToDots("● "+item.title+" ●   ",item.link)
+textToDots(" ● "+title+" ●   ",link)
 );
 
 });
 
 /* duplicate for seamless scroll */
 
-tickerDiv.appendChild(fragment.cloneNode(true));
-tickerDiv.appendChild(fragment);
+ticker.appendChild(fragment.cloneNode(true));
+ticker.appendChild(fragment);
+
+/* restart animation */
+
+ticker.style.animation="none";
+ticker.offsetHeight;
+ticker.style.animation="scroll 70s linear infinite";
 
 }
 
@@ -247,22 +228,19 @@ catch(e){
 
 console.error(e);
 
-const tickerDiv=document.getElementById("tickerContent");
-tickerDiv.innerHTML="";
+const ticker=document.getElementById("tickerContent");
 
-tickerDiv.appendChild(
-textToDots("ERROR FETCHING FEED ●","#")
-);
+ticker.innerHTML="ERROR LOADING FEED";
 
 }
 
 }
 
-/* initial load */
+/* initial */
 
 fetchTicker();
 
-/* refresh every 60 seconds */
+/* refresh every minute */
 
 setInterval(fetchTicker,60000);
 
