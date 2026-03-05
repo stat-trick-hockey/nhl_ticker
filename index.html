@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NHL True Dot-Matrix Ticker</title>
+<style>
+body {
+    margin: 0;
+    background: #000;
+    font-family: monospace;
+}
+
+/* Broadcast banner */
+.broadcast-header {
+    background: linear-gradient(90deg, #003300, #001100);
+    color: #00FF00;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 28px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+/* Ticker wrapper */
+.ticker-wrapper {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    border-top: 4px solid #00FF00;
+    background: #000;
+}
+
+/* Dot matrix container */
+.ticker {
+    display: flex;
+    padding-left: 100%;
+    animation: scroll 60s linear infinite;
+}
+
+/* Each character is a grid of dots */
+.char {
+    display: grid;
+    grid-template-columns: repeat(5, 6px);
+    grid-template-rows: repeat(7, 6px);
+    gap: 2px;
+    margin-right: 6px;
+}
+
+/* Each dot */
+.dot {
+    width: 6px;
+    height: 6px;
+    background: #003300; /* off */
+    border-radius: 50%;
+}
+
+/* On dot */
+.dot.on {
+    background: #00FF00; /* LED green */
+}
+
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+</style>
+</head>
+<body>
+
+<div class="broadcast-header">🏒 NHL NETWORK LIVE NEWS</div>
+
+<div class="ticker-wrapper">
+    <div class="ticker" id="tickerContent">
+        Loading NHL headlines...
+    </div>
+</div>
+
+<script>
+// Full 5x7 dot-matrix font including apostrophe
+const font5x7 = {
+    "A":[0b01110,0b10001,0b11111,0b10001,0b10001,0b10001,0b00000],
+    "B":[0b11110,0b10001,0b11110,0b10001,0b10001,0b11110,0b00000],
+    "C":[0b01110,0b10001,0b10000,0b10000,0b10001,0b01110,0b00000],
+    "D":[0b11100,0b10010,0b10001,0b10001,0b10010,0b11100,0b00000],
+    "E":[0b11111,0b10000,0b11110,0b10000,0b10000,0b11111,0b00000],
+    "F":[0b11111,0b10000,0b11110,0b10000,0b10000,0b10000,0b00000],
+    "G":[0b01110,0b10001,0b10000,0b10111,0b10001,0b01110,0b00000],
+    "H":[0b10001,0b10001,0b11111,0b10001,0b10001,0b10001,0b00000],
+    "I":[0b01110,0b00100,0b00100,0b00100,0b00100,0b01110,0b00000],
+    "J":[0b00111,0b00010,0b00010,0b00010,0b10010,0b01100,0b00000],
+    "K":[0b10001,0b10010,0b11100,0b10010,0b10001,0b10001,0b00000],
+    "L":[0b10000,0b10000,0b10000,0b10000,0b10000,0b11111,0b00000],
+    "M":[0b10001,0b11011,0b10101,0b10001,0b10001,0b10001,0b00000],
+    "N":[0b10001,0b11001,0b10101,0b10011,0b10001,0b10001,0b00000],
+    "O":[0b01110,0b10001,0b10001,0b10001,0b10001,0b01110,0b00000],
+    "P":[0b11110,0b10001,0b11110,0b10000,0b10000,0b10000,0b00000],
+    "Q":[0b01110,0b10001,0b10001,0b10101,0b10010,0b01101,0b00000],
+    "R":[0b11110,0b10001,0b11110,0b10010,0b10001,0b10001,0b00000],
+    "S":[0b01111,0b10000,0b01110,0b00001,0b00001,0b11110,0b00000],
+    "T":[0b11111,0b00100,0b00100,0b00100,0b00100,0b00100,0b00000],
+    "U":[0b10001,0b10001,0b10001,0b10001,0b10001,0b01110,0b00000],
+    "V":[0b10001,0b10001,0b10001,0b10001,0b01010,0b00100,0b00000],
+    "W":[0b10001,0b10001,0b10001,0b10101,0b11011,0b10001,0b00000],
+    "X":[0b10001,0b01010,0b00100,0b00100,0b01010,0b10001,0b00000],
+    "Y":[0b10001,0b01010,0b00100,0b00100,0b00100,0b00100,0b00000],
+    "Z":[0b11111,0b00010,0b00100,0b01000,0b10000,0b11111,0b00000],
+    "0":[0b01110,0b10011,0b10101,0b11001,0b10001,0b01110,0b00000],
+    "1":[0b00100,0b01100,0b00100,0b00100,0b00100,0b01110,0b00000],
+    "2":[0b01110,0b10001,0b00010,0b00100,0b01000,0b11111,0b00000],
+    "3":[0b11111,0b00010,0b00100,0b00010,0b10001,0b01110,0b00000],
+    "4":[0b00010,0b00110,0b01010,0b10010,0b11111,0b00010,0b00000],
+    "5":[0b11111,0b10000,0b11110,0b00001,0b10001,0b01110,0b00000],
+    "6":[0b00110,0b01000,0b10000,0b11110,0b10001,0b01110,0b00000],
+    "7":[0b11111,0b00001,0b00010,0b00100,0b01000,0b01000,0b00000],
+    "8":[0b01110,0b10001,0b01110,0b10001,0b10001,0b01110,0b00000],
+    "9":[0b01110,0b10001,0b10001,0b01111,0b00001,0b01110,0b00000],
+    " ": [0b00000,0b00000,0b00000,0b00000,0b00000,0b00000,0b00000],
+    "●":[0b00000,0b00100,0b01110,0b01110,0b00100,0b00000,0b00000],
+    "-":[0b00000,0b00000,0b01110,0b00000,0b00000,0b00000,0b00000],
+    ":":[0b00000,0b00100,0b00000,0b00000,0b00100,0b00000,0b00000],
+    ".":[0b00000,0b00000,0b00000,0b00000,0b00100,0b00000,0b00000],
+    ",":[0b00000,0b00000,0b00000,0b00100,0b00100,0b01000,0b00000],
+    "!":[0b00100,0b00100,0b00100,0b00100,0b00000,0b00100,0b00000],
+    "?":[0b01110,0b10001,0b00010,0b00100,0b00000,0b00100,0b00000],
+    "'":[0b00100,0b00100,0b00000,0b00000,0b00000,0b00000,0b00000],
+    "/":[0b00001,0b00010,0b00100,0b01000,0b10000,0b00000,0b00000],
+    "&":[0b01100,0b10010,0b01100,0b10101,0b10010,0b01101,0b00000],
+    "(": [0b00010,0b00100,0b01000,0b01000,0b00100,0b00010,0b00000],
+    ")": [0b01000,0b00100,0b00010,0b00010,0b00100,0b01000,0b00000]
+};
+
+// Convert text to dot-matrix HTML
+function textToDots(text, link) {
+    const container = document.createDocumentFragment();
+    text = text.toUpperCase();
+    
+    // Wrap each headline in clickable span
+    const headlineSpan = document.createElement("span");
+    headlineSpan.style.display = "flex";
+    headlineSpan.style.cursor = "pointer";
+    headlineSpan.onclick = () => { window.open(link, "_blank"); };
+    
+    for (let char of text) {
+        const charGrid = document.createElement("div");
+        charGrid.className = "char";
+        const bitmap = font5x7[char] || font5x7[" "];
+        for (let row of bitmap) {
+            for (let col=4; col>=0; col--) {
+                const dot = document.createElement("div");
+                dot.className = "dot";
+                if ((row >> col) & 1) dot.classList.add("on");
+                charGrid.appendChild(dot);
+            }
+        }
+        headlineSpan.appendChild(charGrid);
+    }
+    container.appendChild(headlineSpan);
+    return container;
+}
+
+// Fetch RSS feed and render ticker
+async function fetchTicker() {
+    try {
+        const feedUrl = encodeURIComponent("https://nhltradetalk.com/feed");
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${feedUrl}`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        const tickerDiv = document.getElementById("tickerContent");
+        tickerDiv.innerHTML = "";
+
+        // Build clickable dot headlines
+        data.items.forEach(item => {
+            tickerDiv.appendChild(textToDots("● " + item.title + " ●", item.link));
+        });
+
+    } catch (e) {
+        console.error(e);
+        const tickerDiv = document.getElementById("tickerContent");
+        tickerDiv.innerHTML = "";
+        tickerDiv.appendChild(textToDots("ERROR FETCHING FEED ●", "#"));
+    }
+}
+
+// Initial load
+fetchTicker();
+
+// Refresh every 15 minutes
+setInterval(fetchTicker, 900000);
+</script>
+
+</body>
+</html>
