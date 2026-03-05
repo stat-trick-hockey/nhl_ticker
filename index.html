@@ -37,13 +37,15 @@ background:#000;
 .ticker{
 display:flex;
 width:max-content;
-animation:scroll 70s linear infinite;
+animation:scroll 80s linear infinite;
 }
 
 @keyframes scroll{
 0%{transform:translateX(0);}
 100%{transform:translateX(-50%);}
 }
+
+/* DOT MATRIX */
 
 .char{
 display:grid;
@@ -77,7 +79,7 @@ background:#00FF00;
 
 <script>
 
-/* DOT FONT */
+/* 5x7 DOT FONT */
 
 const font5x7={
 "A":[14,17,31,17,17,17,0],
@@ -126,7 +128,8 @@ const font5x7={
 ",":[0,0,0,4,4,8,0]
 };
 
-/* TEXT TO DOTS */
+
+/* CONVERT TEXT TO DOT MATRIX */
 
 function textToDots(text,link){
 
@@ -137,21 +140,21 @@ wrapper.onclick=()=>window.open(link,"_blank");
 
 text=text.toUpperCase();
 
-for(let char of text){
+for(const char of text){
 
 const grid=document.createElement("div");
 grid.className="char";
 
 const bitmap=font5x7[char]||font5x7[" "];
 
-for(let row of bitmap){
+for(const row of bitmap){
 
 for(let col=4;col>=0;col--){
 
 const dot=document.createElement("div");
 dot.className="dot";
 
-if((row>>col)&1)dot.classList.add("on");
+if((row>>col)&1) dot.classList.add("on");
 
 grid.appendChild(dot);
 
@@ -167,15 +170,17 @@ return wrapper;
 
 }
 
+
 /* FETCH RSS */
 
 async function fetchTicker(){
 
 try{
 
-const url="https://api.allorigins.win/raw?url="+encodeURIComponent("https://nhltradetalk.com/feed/");
+const rss="https://nhltradetalk.com/feed/";
+const proxy="https://api.allorigins.win/raw?url=";
 
-const response=await fetch(url+"?t="+Date.now());
+const response=await fetch(proxy+encodeURIComponent(rss)+"&t="+Date.now());
 const xml=await response.text();
 
 const parser=new DOMParser();
@@ -184,17 +189,9 @@ const doc=parser.parseFromString(xml,"text/xml");
 const items=[...doc.querySelectorAll("item")];
 
 const ticker=document.getElementById("tickerContent");
-
 ticker.innerHTML="";
 
-/* newest first */
-
-items.sort((a,b)=>{
-
-return new Date(b.querySelector("pubDate").textContent)-
-new Date(a.querySelector("pubDate").textContent)
-
-});
+/* KEEP RSS ORDER (FIRST ITEM FIRST) */
 
 const latest=items.slice(0,15);
 
@@ -211,7 +208,7 @@ textToDots(" ● "+title+" ●   ",link)
 
 });
 
-/* duplicate for seamless scroll */
+/* duplicate content for seamless loop */
 
 ticker.appendChild(fragment.cloneNode(true));
 ticker.appendChild(fragment);
@@ -220,27 +217,26 @@ ticker.appendChild(fragment);
 
 ticker.style.animation="none";
 ticker.offsetHeight;
-ticker.style.animation="scroll 70s linear infinite";
+ticker.style.animation="scroll 80s linear infinite";
 
 }
 
-catch(e){
+catch(err){
 
-console.error(e);
+console.error(err);
 
-const ticker=document.getElementById("tickerContent");
-
-ticker.innerHTML="ERROR LOADING FEED";
+document.getElementById("tickerContent").innerHTML="ERROR LOADING RSS FEED";
 
 }
 
 }
 
-/* initial */
+
+/* INITIAL LOAD */
 
 fetchTicker();
 
-/* refresh every minute */
+/* REFRESH EVERY MINUTE */
 
 setInterval(fetchTicker,60000);
 
