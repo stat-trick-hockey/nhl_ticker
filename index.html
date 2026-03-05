@@ -173,8 +173,13 @@ async function fetchTicker() {
         const tickerDiv = document.getElementById("tickerContent");
         tickerDiv.innerHTML = "";
 
+        // Sort posts by newest first
+        const sortedItems = data.items.sort((a, b) => {
+            return new Date(b.pubDate) - new Date(a.pubDate);
+        });
+        
         // Build clickable dot headlines
-        data.items.forEach(item => {
+        sortedItems.forEach(item => {
             tickerDiv.appendChild(textToDots("● " + item.title + " ●", item.link));
         });
 
