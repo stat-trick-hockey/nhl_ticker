@@ -114,7 +114,7 @@ function textToDots(text, link){
   return wrapper;
 }
 
-// Fetch and display only article titles
+// Fetch and display only <item> titles
 async function fetchTicker(){
   try{
     const rss = "https://www.sportsnet.ca/hockey/feed/";
@@ -126,16 +126,16 @@ async function fetchTicker(){
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, "text/xml");
 
+    // Only select <item> titles, ignore <channel> title
     const items = [...doc.querySelectorAll("item")].slice(0, 15);
     const ticker = document.getElementById("tickerContent");
     ticker.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
 
-    // Only titles, no bullets
     items.forEach(item => {
-      const title = item.querySelector("title").textContent;
-      const link = item.querySelector("link").textContent;
+      const title = item.querySelector("title").textContent.trim();
+      const link = item.querySelector("link").textContent.trim();
       fragment.appendChild(textToDots(title + " ", link)); // space between titles
     });
 
@@ -144,7 +144,7 @@ async function fetchTicker(){
 
     // Faster scrolling
     const totalWidth = ticker.scrollWidth / 2;
-    const speed = 250; // pixels per second, much faster
+    const speed = 300; // pixels per second (even faster)
     const duration = totalWidth / speed;
     ticker.style.animation = `scroll ${duration}s linear infinite`;
 
